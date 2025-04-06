@@ -1,0 +1,2 @@
+A game written in Python, where the user can practice their math (and luck). The user chooses how many questions the game should consist of. It then chooses an operator *, //, / or random and which factor/divisor.
+The game then asks the user a math question. If the user answers correctly it has to choose a door to open. Behind one of them are some hungry zombies and if that one is chosen the user will be eaten.
