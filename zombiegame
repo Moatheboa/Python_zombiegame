@@ -1,0 +1,122 @@
+from random import choice, sample, shuffle
+
+
+def input_check(nummer, a, b):  
+    """ Checks that the user enters an integer within the valid range; returns it as an int."""
+    while not nummer.isdigit() or int(nummer) < a or int(nummer) > b:
+        nummer = input('Ogiltigt val. Försök igen:')
+    nummer = int(nummer)
+    return nummer
+
+
+def räknesätt(p_önskat_räknesätt):
+    """ Returns the operator selected by the user. If 'random' is chosen, a new random operator is returned each time the function is called."""
+    if p_önskat_räknesätt == '//':
+        räknesätt = '//'
+    elif p_önskat_räknesätt == '%':
+        räknesätt = '%'
+    elif p_önskat_räknesätt == '*':
+        räknesätt = '*'
+    elif p_önskat_räknesätt == 'slumpat':
+        lista = ['//', '%', '*']
+        räknesätt = choice(lista)
+    return räknesätt
+
+
+def slumpad_tabell_divisor(p_frågans_räknesätt):
+    """ Randomly selects a multiplication table or divisor based on the current question's operator. Returns the value as an int."""
+    if p_frågans_räknesätt == '*':
+        tabell_lista = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12]
+        tabell_divisor = int(choice(tabell_lista))
+    else:
+        divisor_lista = [2, 3, 4, 5]
+        tabell_divisor = int(choice(divisor_lista))
+    return tabell_divisor
+    
+
+def slumplista(p_antal_frågor):
+    """Generates a list of numbers between 0 and 12 matching the number of questions requested by the user. Ensures the same number doesn't appear too many times in a row."""
+    if p_antal_frågor < 13:
+        lista1 = list(range(0, 13)) 
+        lista1 = sample(lista1, p_antal_frågor)
+    else:
+        lista1 = list(range(0, 13))
+        shuffle(lista1)
+        if p_antal_frågor > 13 and p_antal_frågor < 27:
+            lista2 = list(sample(lista1, p_antal_frågor - 13))
+            lista1.extend(lista2)
+        elif p_antal_frågor > 26:
+            lista2 = list(range(0, 13))
+            shuffle(lista2)
+            lista3 = list(sample(lista2, p_antal_frågor - 26))
+            lista1.extend(lista2)
+            lista1.extend(lista3)
+    return lista1
+
+
+nytt_spel = 'ja'
+while nytt_spel == 'ja':
+    print('Välkommen! Du har valt att spela ett mycket farligt spel. Vinner du erhåller du ganska mycket ära, men svarar du fel på en fråga eller väljer fel dörr blir du dessvärre uppäten av zombies. Lycka till!')
+    antal_frågor = input('\nHur många frågor ska spelet bestå av, 12-39?')
+    antal_frågor = input_check(antal_frågor, 12, 39)
+        
+    önskat_räknesätt = input('Vilket räknesätt önskas? //, %, * eller slumpat.')
+    while önskat_räknesätt not in ['//', '%', '*', 'slumpat']:
+        önskat_räknesätt = input('Fel inmatning. \nVilket räknesätt önskas? //, %, * eller slumpat.')
+
+    if önskat_räknesätt == '*':
+        tabell_divisor = input('Vilken tabell 2-12?')
+        tabell_divisor = input_check(tabell_divisor, 2, 12)
+
+    elif önskat_räknesätt in ['//','%']:
+        tabell_divisor = input('Vilken divisor 2-5?')
+        tabell_divisor = input_check(tabell_divisor, 2, 5)
+
+    safe = 'ja'
+    while safe == 'ja':
+        slumpad_tallista = slumplista(antal_frågor)
+        doors = list(range(1, antal_frågor + 2))  # 2 extra doors because one door is removed before the user selects a door for the first time. 
+        for i in range(0, antal_frågor):
+            shuffle(doors)
+            zombies = doors[0]
+            current_question = 1 + i
+            frågans_räknesätt = räknesätt(önskat_räknesätt)
+            if önskat_räknesätt == 'slumpat':        
+                tabell_divisor = slumpad_tabell_divisor(frågans_räknesätt)
+
+            tal = slumpad_tallista[-1]
+            gissning = input(f'Fråga {current_question} av {antal_frågor}. Vad blir {tal} {frågans_räknesätt} {tabell_divisor}?')
+            gissning = input_check(gissning, 0, 10000)  # Arbitrary last argument to enable calling the function.
+            rätt_svar = eval(f'{tal} {frågans_räknesätt} {tabell_divisor}')
+            if gissning != rätt_svar:
+                print('Ajdå, det var fel svar. \nGAME OVER')
+                safe = 'nej'
+                break
+                
+            doors.remove(max(doors))
+            if max(doors) < 2:
+                print('HURRA! Du klarade spelet!')
+                safe = 'helt'
+                break
+                
+            opened_door = input(f'Vilken dörr? 1-{max(doors)}')
+            opened_door = input_check(opened_door, 1, max(doors))
+                
+            if opened_door == zombies:
+                print('Ajdå, du blir uppäten nu. \nGAME OVER')
+                safe = 'nej'
+                break
+                
+            else:
+                 print(f'Pust! Du klarade dig, zombiesarna var bakom dörr nr {zombies}')
+            slumpad_tallista.remove(slumpad_tallista[-1])  # Here, the element selected as the number in the iteration is removed from slumpad_tallista, so that in the next iteration, a different number is at index [-1].
+            
+        if safe == 'nej':
+            safe = input('Vill du börja om spelet? ja/nej')
+            if safe != 'ja':
+                print('Spelet avslutas.')
+                nytt_spel = 'nej'
+        if safe == 'helt':
+            nytt_spel = input('Vill du börja ett nytt spel? ja/nej')
+            if nytt_spel != 'ja':
+                print('Spelet avslutas.')
